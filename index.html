@@ -209,9 +209,10 @@ $("login").onclick=()=>{
 };
 (async()=>{
   if(typeof supabase==="undefined"||!window.SUPABASE_URL||window.SUPABASE_URL.startsWith("PASTE")){applyMode();return}
-  sb=supabase.createClient(window.SUPABASE_URL,window.SUPABASE_KEY);useDb=true;canWrite=false;recipes=[];render();
+  sb=supabase.createClient(window.SUPABASE_URL,window.SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});useDb=true;canWrite=false;recipes=[];render();
   sb.auth.onAuthStateChange((ev,session)=>{authed=!!session;canWrite=authed;applyMode();render()});
-  applyMode();await pull();
+  try{const r=await sb.auth.getSession();authed=!!(r.data&&r.data.session);canWrite=authed}catch(e){}
+  applyMode();render();await pull();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pull()});
 })();
 </script>
