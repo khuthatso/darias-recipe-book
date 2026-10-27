@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Daria’s Recipe Book</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fff5f8;--card:#fff;--ink:#4a2433;--mute:#8a6272;--rose:#e8457c;--rose2:#c42a63;--blush:#ffdce8;--line:#f5c6d8;--peach:#ffb9a6;--onrose:#fff;
@@ -63,7 +65,7 @@ dialog::backdrop{background:rgba(74,36,51,.55)}
 <div class="wrap">
 <header>
   <div class="logo">Daria’s Recipe Book<small>Every recipe you love, in one place</small></div>
-  <button id="add">+ New recipe</button>
+  <div class="row"><button id="login" class="ghost" hidden>Daria login</button><button id="add" hidden>+ New recipe</button></div>
 </header>
 
 <section class="idea" id="idea" hidden>
@@ -82,7 +84,7 @@ dialog::backdrop{background:rgba(74,36,51,.55)}
   <div class="chips" id="chips"></div>
   <div class="grid" id="grid"></div>
 </section>
-<p class="note">Recipes are saved in this browser on this device.</p>
+<p class="note" id="note">Recipes are saved in this browser on this device.</p>
 </div>
 
 <dialog id="dlg"><div class="modal" id="modal"></div></dialog>
@@ -90,12 +92,18 @@ dialog::backdrop{background:rgba(74,36,51,.55)}
 <script>
 const CATS=["Baking","Cooking","Breakfast","Dessert","Drinks","Other"];
 const KEY="darias-kitchen-recipes";
-let recipes=[],cat="All",suggestion=null;
+let recipes=[],cat="All",suggestion=null,useDb=false,canWrite=true,col=null,pub=false,lastSaved={};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lines=t=>String(t||"").split("\n").map(s=>s.trim()).filter(Boolean);
 function load(){try{recipes=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){recipes=[]}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(recipes))}catch(e){}}
+function save(){
+  if(!useDb){try{localStorage.setItem(KEY,JSON.stringify(recipes))}catch(e){}return}
+  if(!canWrite)return;
+  const ids=new Set();
+  recipes.forEach(r=>{ids.add(r.id);const {id,...b}=r;const s=JSON.stringify(b);if(lastSaved[id]!==s){lastSaved[id]=s;sb.from("recipes").upsert({id,data:JSON.parse(s)}).then(r=>{if(r.error)flash("Couldn’t save. Try logging in again.")})}});
+  Object.keys(lastSaved).forEach(id=>{if(!ids.has(id)){delete lastSaved[id];sb.from("recipes").delete().eq("id",id).then(()=>{})}});
+}
 
 const EMO=[["chocolate|cocoa|brownie","🍫"],["strawberr","🍓"],["blueberr|berry|berries","🫐"],["raspberr|cherry","🍒"],["banana","🍌"],["apple","🍎"],["lemon|lime","🍋"],["orange","🍊"],["peach","🍑"],["coconut","🥥"],["pumpkin","🎃"],["cake|cupcake","🍰"],["cookie|biscuit","🍪"],["bread|dough|bun|loaf","🍞"],["croissant","🥐"],["pancake|waffle","🥞"],["pie|tart","🥧"],["donut|doughnut","🍩"],["ice cream","🍨"],["chicken","🍗"],["beef|steak|burger","🥩"],["bacon","🥓"],["pork|sausage|ham","🌭"],["fish|salmon|tuna","🐟"],["shrimp|prawn","🍤"],["egg","🥚"],["cheese|mozzarella|parmesan","🧀"],["butter","🧈"],["milk|cream","🥛"],["rice|sushi","🍚"],["pasta|spaghetti|noodle|lasagn","🍝"],["pizza","🍕"],["taco","🌮"],["potato|fries","🥔"],["tomato","🍅"],["avocado|guacamole","🥑"],["onion","🧅"],["garlic","🧄"],["carrot","🥕"],["corn","🌽"],["pepper|chili","🌶️"],["broccoli","🥦"],["mushroom","🍄"],["salad|lettuce|spinach|kale","🥗"],["soup|stew","🍲"],["honey","🍯"],["nut|almond|peanut","🥜"],["coffee|espresso","☕"],["tea|matcha","🍵"],["smoothie|juice","🥤"],["flour|sugar|vanilla","🧁"]];
 const FALL={Baking:"🧁",Cooking:"🍳",Breakfast:"🥞",Dessert:"🍰",Drinks:"🥤",Other:"🍽️"};
@@ -110,7 +118,7 @@ function render(){
   $("chips").innerHTML=["All","Favorites",...CATS].map(c=>`<button class="chip ${c===cat?"on":""}" data-c="${c}">${c==="Favorites"?"♥ Favorites":c}</button>`).join("");
   const list=recipes.filter(r=>(cat==="All"||(cat==="Favorites"?r.fav:r.cat===cat))&&(!q||(r.title+" "+r.ingredients).toLowerCase().includes(q)));
   $("grid").innerHTML=list.length?list.map(r=>`<button class="card" data-id="${r.id}">${pic(r)}<div class="top"><span class="tag">${esc(r.cat)}</span><span class="fav" aria-hidden="true">${r.fav?"♥":"♡"}</span></div><h3>${esc(r.title)}</h3><div class="meta">${r.time?esc(r.time):"No time set"}${r.servings?" · serves "+esc(r.servings):""}</div></button>`).join(""):
-  `<div class="empty" style="grid-column:1/-1">${recipes.length?"No recipes match. Try another search or category.":"No recipes yet. Tap “New recipe” to add your first one."}</div>`;
+  `<div class="empty" style="grid-column:1/-1">${recipes.length?"No recipes match. Try another search or category.":(canWrite?"No recipes yet. Tap “New recipe” to add your first one.":"No recipes have been added yet. Check back soon.")}</div>`;
 }
 $("chips").onclick=e=>{const c=e.target.closest("[data-c]");if(c){cat=c.dataset.c;render()}};
 $("q").oninput=render;
@@ -127,6 +135,7 @@ function view(id){
   $("ed").onclick=()=>form(r);
   let armed=false;$("del").onclick=()=>{if(!armed){armed=true;$("del").textContent="Tap again to delete";setTimeout(()=>{armed=false;if($("del"))$("del").textContent="Delete"},3500);return}recipes=recipes.filter(x=>x.id!==id);save();$("dlg").close();render()};
   $("cl").onclick=()=>$("dlg").close();
+  if(!canWrite)["fv","ed","del"].forEach(i=>{const e=$(i);if(e)e.remove()});
   if(!$("dlg").open)$("dlg").showModal();
 }
 
@@ -180,6 +189,31 @@ $("ask").onclick=async()=>{
 };
 
 load();render();
+let sb=null,authed=false;
+const flash=m=>{$("note").textContent=m};
+function applyMode(){
+  $("add").hidden=!canWrite;$("login").hidden=!sb;$("login").textContent=authed?"Log out":"Daria login";
+  flash(sb?(authed?"You’re logged in. Everything you save is public for everyone to see.":"You’re viewing Daria’s recipes."):"Recipes are saved in this browser on this device.");
+}
+async function pull(){
+  const {data,error}=await sb.from("recipes").select("id,data");if(error)return;
+  recipes=data.map(x=>({id:x.id,...x.data})).sort((a,b)=>b.id.localeCompare(a.id));
+  lastSaved={};recipes.forEach(r=>{const {id,...b}=r;lastSaved[id]=JSON.stringify(b)});render();
+}
+$("login").onclick=()=>{
+  if(authed){sb.auth.signOut();return}
+  $("modal").innerHTML=`<h2>Daria login</h2><label for="em">Email</label><input id="em" type="email" autocomplete="username"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"><p id="lm" class="meta" style="color:var(--rose2)"></p><div class="row"><button id="go">Log in</button><button class="ghost" id="x">Cancel</button></div>`;
+  $("x").onclick=()=>$("dlg").close();
+  $("go").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});if(error){$("lm").textContent="Wrong email or password.";return}$("dlg").close()};
+  $("dlg").showModal();
+};
+(async()=>{
+  if(typeof supabase==="undefined"||!window.SUPABASE_URL||window.SUPABASE_URL.startsWith("PASTE")){applyMode();return}
+  sb=supabase.createClient(window.SUPABASE_URL,window.SUPABASE_KEY);useDb=true;canWrite=false;recipes=[];render();
+  sb.auth.onAuthStateChange((ev,session)=>{authed=!!session;canWrite=authed;applyMode();render()});
+  applyMode();await pull();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)pull()});
+})();
 </script>
 </body>
 </html>
