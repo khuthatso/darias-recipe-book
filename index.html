@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daria’s Recipe Book</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff5f8;--card:#fff;--ink:#4a2433;--mute:#8a6272;--rose:#e8457c;--rose2:#c42a63;--blush:#ffdce8;--line:#f5c6d8;--peach:#ffb9a6;--onrose:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a1620;--card:#3a1f2c;--ink:#ffe8f0;--mute:#d3a7b8;--rose:#ff7aa8;--rose2:#ff9bbd;--blush:#4d2837;--line:#63364a;--peach:#ff9c86;--onrose:#2a1620;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#2a1620;--card:#3a1f2c;--ink:#ffe8f0;--mute:#d3a7b8;--rose:#ff7aa8;--rose2:#ff9bbd;--blush:#4d2837;--line:#63364a;--peach:#ff9c86;--onrose:#2a1620;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "DM Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;line-height:1.15;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding:20px 18px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 8px}
+.logo{font-size:clamp(2rem,6vw,3rem);font-weight:700;color:var(--rose2);font-style:italic;letter-spacing:-.5px}
+.logo small{display:block;font:500 .95rem "DM Sans",sans-serif;font-style:normal;color:var(--mute);letter-spacing:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 20px;background:var(--rose);color:var(--onrose);font-weight:700}
+button:hover{background:var(--rose2)}
+button.ghost{background:transparent;color:var(--rose2);border:2px solid var(--line)}
+button.ghost:hover{background:var(--blush)}
+button.sm{padding:6px 14px;font-size:.9rem}
+:focus-visible{outline:3px solid var(--peach);outline-offset:2px}
+.idea{background:linear-gradient(135deg,var(--blush),var(--card));border:2px dashed var(--rose);border-radius:28px;padding:22px;margin:18px 0 30px}
+.idea h2{font-size:1.5rem;color:var(--rose2)}
+.idea p{margin:6px 0 14px;color:var(--mute)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 14px;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--rose);outline:none}
+.row input{flex:1 1 220px;width:auto}
+#result{margin-top:16px;background:var(--card);border-radius:20px;padding:18px;border:1px solid var(--line)}
+#result h3{color:var(--rose2);font-size:1.35rem}
+#result ul,#result ol,.modal ul,.modal ol{padding-left:22px;margin:6px 0 12px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.bar input{flex:1 1 200px;width:auto}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{background:var(--card);color:var(--mute);border:2px solid var(--line);padding:6px 16px;font-weight:500}
+.chip:hover{background:var(--blush)}
+.chip.on{background:var(--rose);color:var(--onrose);border-color:var(--rose)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;color:var(--ink);font-weight:400}
+.card:hover{background:var(--card);border-color:var(--rose)}
+.card h3{font-size:1.25rem}
+.tag{align-self:flex-start;background:var(--blush);color:var(--rose2);border-radius:999px;padding:2px 12px;font-size:.82rem;font-weight:700}
+.meta{color:var(--mute);font-size:.9rem}
+.empty{text-align:center;padding:40px 16px;color:var(--mute);background:var(--card);border:2px dashed var(--line);border-radius:24px}
+dialog{border:0;border-radius:28px;background:var(--card);color:var(--ink);padding:0;width:min(640px,94vw);max-height:90vh}
+dialog::backdrop{background:rgba(74,36,51,.55)}
+.modal{padding:24px;overflow:auto;max-height:90vh}
+.modal label{display:block;font-weight:700;margin:12px 0 4px}
+.modal pre{white-space:pre-wrap;font:inherit;margin:4px 0 12px}
+.fav{background:none;color:var(--rose);font-size:1.3rem;padding:0 4px;border-radius:8px}
+.fav:hover{background:none}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.pic{height:120px;border-radius:18px;background:linear-gradient(135deg,var(--blush),var(--peach));display:flex;align-items:center;justify-content:center;font-size:2.3rem;gap:6px;overflow:hidden;margin-bottom:4px}.pic.big{height:190px;font-size:3.4rem;margin-bottom:12px}.pic img{width:100%;height:100%;object-fit:cover}
+.note{font-size:.85rem;color:var(--mute);margin-top:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">Daria’s Recipe Book<small>Every recipe you love, in one place</small></div>
+  <button id="add">+ New recipe</button>
+</header>
+
+<section class="idea" id="idea" hidden>
+  <h2>Not sure what to make?</h2>
+  <p>Tell me what’s in the fridge or what you’re craving, and I’ll suggest something. Totally optional.</p>
+  <div class="row">
+    <input id="want" placeholder="e.g. chicken, rice, something cozy" aria-label="Ingredients or mood">
+    <button id="ask">Suggest a meal</button>
+  </div>
+  <div id="result" hidden></div>
+</section>
+
+<section>
+  <h2 style="margin-bottom:12px">My recipes</h2>
+  <div class="bar"><input id="q" type="search" placeholder="Search recipes or ingredients" aria-label="Search recipes"></div>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+</section>
+<p class="note">Recipes are saved in this browser on this device.</p>
+</div>
+
+<dialog id="dlg"><div class="modal" id="modal"></div></dialog>
+
+<script>
+const CATS=["Baking","Cooking","Breakfast","Dessert","Drinks","Other"];
+const KEY="darias-kitchen-recipes";
+let recipes=[],cat="All",suggestion=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const lines=t=>String(t||"").split("\n").map(s=>s.trim()).filter(Boolean);
+function load(){try{recipes=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){recipes=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(recipes))}catch(e){}}
+
+const EMO=[["chocolate|cocoa|brownie","🍫"],["strawberr","🍓"],["blueberr|berry|berries","🫐"],["raspberr|cherry","🍒"],["banana","🍌"],["apple","🍎"],["lemon|lime","🍋"],["orange","🍊"],["peach","🍑"],["coconut","🥥"],["pumpkin","🎃"],["cake|cupcake","🍰"],["cookie|biscuit","🍪"],["bread|dough|bun|loaf","🍞"],["croissant","🥐"],["pancake|waffle","🥞"],["pie|tart","🥧"],["donut|doughnut","🍩"],["ice cream","🍨"],["chicken","🍗"],["beef|steak|burger","🥩"],["bacon","🥓"],["pork|sausage|ham","🌭"],["fish|salmon|tuna","🐟"],["shrimp|prawn","🍤"],["egg","🥚"],["cheese|mozzarella|parmesan","🧀"],["butter","🧈"],["milk|cream","🥛"],["rice|sushi","🍚"],["pasta|spaghetti|noodle|lasagn","🍝"],["pizza","🍕"],["taco","🌮"],["potato|fries","🥔"],["tomato","🍅"],["avocado|guacamole","🥑"],["onion","🧅"],["garlic","🧄"],["carrot","🥕"],["corn","🌽"],["pepper|chili","🌶️"],["broccoli","🥦"],["mushroom","🍄"],["salad|lettuce|spinach|kale","🥗"],["soup|stew","🍲"],["honey","🍯"],["nut|almond|peanut","🥜"],["coffee|espresso","☕"],["tea|matcha","🍵"],["smoothie|juice","🥤"],["flour|sugar|vanilla","🧁"]];
+const FALL={Baking:"🧁",Cooking:"🍳",Breakfast:"🥞",Dessert:"🍰",Drinks:"🥤",Other:"🍽️"};
+function pic(r,big){
+  if(r.photo)return `<div class="pic ${big?"big":""}"><img src="${esc(r.photo)}" alt="${esc(r.title)}"></div>`;
+  const t=(r.title||"").toLowerCase(),i=(r.ingredients||"").toLowerCase(),out=[];
+  for(const src of [t,i])for(const [k,e] of EMO)if(out.length<4&&!out.includes(e)&&new RegExp(k).test(src))out.push(e);
+  return `<div class="pic ${big?"big":""}" aria-hidden="true">${(out.length?out:[FALL[r.cat]||"🍽️"]).join("")}</div>`;
+}
+function render(){
+  const q=$("q").value.toLowerCase();
+  $("chips").innerHTML=["All","Favorites",...CATS].map(c=>`<button class="chip ${c===cat?"on":""}" data-c="${c}">${c==="Favorites"?"♥ Favorites":c}</button>`).join("");
+  const list=recipes.filter(r=>(cat==="All"||(cat==="Favorites"?r.fav:r.cat===cat))&&(!q||(r.title+" "+r.ingredients).toLowerCase().includes(q)));
+  $("grid").innerHTML=list.length?list.map(r=>`<button class="card" data-id="${r.id}">${pic(r)}<div class="top"><span class="tag">${esc(r.cat)}</span><span class="fav" aria-hidden="true">${r.fav?"♥":"♡"}</span></div><h3>${esc(r.title)}</h3><div class="meta">${r.time?esc(r.time):"No time set"}${r.servings?" · serves "+esc(r.servings):""}</div></button>`).join(""):
+  `<div class="empty" style="grid-column:1/-1">${recipes.length?"No recipes match. Try another search or category.":"No recipes yet. Tap “New recipe” to add your first one."}</div>`;
+}
+$("chips").onclick=e=>{const c=e.target.closest("[data-c]");if(c){cat=c.dataset.c;render()}};
+$("q").oninput=render;
+$("grid").onclick=e=>{const c=e.target.closest("[data-id]");if(c)view(c.dataset.id)};
+
+function view(id){
+  const r=recipes.find(x=>x.id===id);if(!r)return;
+  $("modal").innerHTML=`${pic(r,true)}<div class="top"><div><span class="tag">${esc(r.cat)}</span><h2 style="margin-top:8px">${esc(r.title)}</h2><div class="meta">${esc(r.time||"")}${r.servings?" · serves "+esc(r.servings):""}</div></div><button class="fav" id="fv" aria-label="Toggle favorite">${r.fav?"♥":"♡"}</button></div>
+  <label>Ingredients</label><ul>${lines(r.ingredients).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
+  <label>Steps</label><ol>${lines(r.steps).map(l=>`<li>${esc(l)}</li>`).join("")}</ol>
+  ${r.notes?`<label>Notes</label><pre>${esc(r.notes)}</pre>`:""}
+  <div class="row" style="margin-top:16px"><button id="ed">Edit</button><button class="ghost" id="del">Delete</button><button class="ghost" id="cl">Close</button></div>`;
+  $("fv").onclick=()=>{r.fav=!r.fav;save();view(id);render()};
+  $("ed").onclick=()=>form(r);
+  let armed=false;$("del").onclick=()=>{if(!armed){armed=true;$("del").textContent="Tap again to delete";setTimeout(()=>{armed=false;if($("del"))$("del").textContent="Delete"},3500);return}recipes=recipes.filter(x=>x.id!==id);save();$("dlg").close();render()};
+  $("cl").onclick=()=>$("dlg").close();
+  if(!$("dlg").open)$("dlg").showModal();
+}
+
+function form(r){
+  r=r||{};let photo=r.photo||"";
+  $("modal").innerHTML=`<h2>${r.id?"Edit recipe":"New recipe"}</h2>
+  <label for="f-t">Recipe name</label><input id="f-t" value="${esc(r.title)}">
+  <div class="row"><div style="flex:1 1 150px"><label for="f-c">Category</label><select id="f-c">${CATS.map(c=>`<option ${c===r.cat?"selected":""}>${c}</option>`).join("")}</select></div>
+  <div style="flex:1 1 150px"><label for="f-m">Time</label><input id="f-m" placeholder="45 min" value="${esc(r.time)}"></div>
+  <div style="flex:1 1 150px"><label for="f-s">Serves</label><input id="f-s" placeholder="4" value="${esc(r.servings)}"></div></div>
+  <label for="f-i">Ingredients (one per line)</label><textarea id="f-i" rows="5">${esc(r.ingredients)}</textarea>
+  <label for="f-p">Steps (one per line)</label><textarea id="f-p" rows="5">${esc(r.steps)}</textarea>
+  <label for="f-n">Notes (optional)</label><textarea id="f-n" rows="2">${esc(r.notes)}</textarea>
+  <label for="f-ph">Photo (optional)</label><input id="f-ph" type="file" accept="image/*"><div id="ph-prev"></div>
+  <p id="err" class="meta" style="color:var(--rose2)"></p>
+  <div class="row"><button id="sv">Save recipe</button><button class="ghost" id="cn">Cancel</button></div>`;
+  $("cn").onclick=()=>r.id?view(r.id):$("dlg").close();
+  const showPh=()=>{$("ph-prev").innerHTML=photo?`<div class="pic" style="margin-top:8px"><img src="${esc(photo)}" alt=""></div><button class="ghost sm" id="rm">Remove photo</button>`:"";if(photo)$("rm").onclick=()=>{photo="";showPh()}};
+  showPh();
+  $("f-ph").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,500/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);photo=c.toDataURL("image/jpeg",.78);showPh()};im.src=fr.result};fr.readAsDataURL(f)};
+  $("sv").onclick=()=>{
+    const title=$("f-t").value.trim();
+    if(!title){$("err").textContent="Give your recipe a name first.";return}
+    const d={photo,title,cat:$("f-c").value,time:$("f-m").value.trim(),servings:$("f-s").value.trim(),ingredients:$("f-i").value,steps:$("f-p").value,notes:$("f-n").value};
+    if(r.id)Object.assign(recipes.find(x=>x.id===r.id),d);
+    else recipes.unshift({id:"r"+Date.now(),fav:false,...d});
+    save();render();$("dlg").close();
+  };
+  if(!$("dlg").open)$("dlg").showModal();
+}
+$("add").onclick=()=>form();
+
+/* AI meal idea (optional, separate from the recipe box) */
+let sample=null;
+(async()=>{try{sample=await claude.use("sample")}catch(e){}if(sample)$("idea").hidden=false})();
+$("ask").onclick=async()=>{
+  if(!sample)return;
+  const btn=$("ask"),out=$("result");
+  btn.disabled=true;btn.textContent="Thinking…";out.hidden=false;out.textContent="Cooking up an idea…";
+  try{
+    const want=$("want").value.trim()||"surprise me with something delicious";
+    const s=await sample.json(`Suggest ONE meal or bake idea for someone who says: "${want}". Reply with only JSON, no markdown: {"title":string,"category":one of ["Baking","Cooking","Breakfast","Dessert","Drinks","Other"],"time":string,"servings":string,"why":string (one friendly sentence),"ingredients":string[],"steps":string[]}`,{cache:false});
+    suggestion=s;
+    out.innerHTML=`<h3>${esc(s.title)}</h3><div class="meta">${esc(s.time)} · serves ${esc(s.servings)}</div><p>${esc(s.why)}</p><b>Ingredients</b><ul>${(s.ingredients||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul><b>Steps</b><ol>${(s.steps||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ol><div class="row"><button id="keep" class="sm">Save to my recipes</button><button id="again" class="ghost sm">Another idea</button></div>`;
+    $("keep").onclick=()=>{recipes.unshift({id:"r"+Date.now(),fav:false,title:s.title,cat:CATS.includes(s.category)?s.category:"Other",time:s.time||"",servings:s.servings||"",ingredients:(s.ingredients||[]).join("\n"),steps:(s.steps||[]).join("\n"),notes:""});save();render();$("keep").textContent="Saved ♥";$("keep").disabled=true};
+    $("again").onclick=()=>$("ask").click();
+  }catch(e){
+    out.textContent=e&&e.code==="not_granted"?"Suggestions need your OK to run. Try again and allow it.":"Couldn’t get an idea right now. Try again in a moment.";
+  }
+  btn.disabled=false;btn.textContent="Suggest a meal";
+};
+
+load();render();
+</script>
+</body>
+</html>
