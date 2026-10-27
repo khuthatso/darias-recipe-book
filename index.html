@@ -196,7 +196,7 @@ function applyMode(){
   flash(sb?(authed?"You’re logged in. Everything you save is public for everyone to see.":"You’re viewing Daria’s recipes."):"Recipes are saved in this browser on this device.");
 }
 async function pull(){
-  const {data,error}=await sb.from("recipes").select("id,data");if(error)return;
+  const {data,error}=await sb.from("recipes").select("id,data");if(error){flash("Couldn’t load recipes: "+error.message);return}
   recipes=data.map(x=>({id:x.id,...x.data})).sort((a,b)=>b.id.localeCompare(a.id));
   lastSaved={};recipes.forEach(r=>{const {id,...b}=r;lastSaved[id]=JSON.stringify(b)});render();
 }
@@ -204,7 +204,7 @@ $("login").onclick=()=>{
   if(authed){sb.auth.signOut();return}
   $("modal").innerHTML=`<h2>Daria login</h2><label for="em">Email</label><input id="em" type="email" autocomplete="username"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"><p id="lm" class="meta" style="color:var(--rose2)"></p><div class="row"><button id="go">Log in</button><button class="ghost" id="x">Cancel</button></div>`;
   $("x").onclick=()=>$("dlg").close();
-  $("go").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});if(error){$("lm").textContent="Wrong email or password.";return}$("dlg").close()};
+  $("go").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});if(error){$("lm").textContent="Error: "+error.message;return}$("dlg").close()};
   $("dlg").showModal();
 };
 (async()=>{
